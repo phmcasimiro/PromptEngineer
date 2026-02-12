@@ -1,4 +1,7 @@
-# main1-1
+# ==============================================================================
+# ARQUIVO: main1-1.py
+# OBJETIVO: Construir a API
+# ==============================================================================
 
 # Importamos o FastAPI para criar o servidor web
 from fastapi import FastAPI
@@ -47,6 +50,6 @@ def receber_relato(bo: BoletimOcorrencia):
     }
 
 # ==============================================================================
-# COMO RODAR ESTE CÓDIGO:
-# No terminal: uvicorn main_basico:app --reload
+# RODAR NO TERMINAL:
+# uvicorn main1_1:app --reload
 # ==============================================================================

@@ -15,7 +15,9 @@
 `ollama ps` Mostra quais modelos estão rodando na memória no momento.
 
 ## RUN OLLAMA
+
 - Primeiro Modelo a ser utilizado Llama 3.2 (leve)
+
 `ollama run llama3.2`
 
 ## ACESSANDO A API
@@ -24,7 +26,7 @@
 
 `curl http://localhost:11434/api/tags`
 
-## TÉCNICA ZERO SHOT 
+## TÉCNICA ZERO SHOT
 
 No Zero-Shot é fornecida a instrução e a tarefa sem dar nenhum exemplo prévio de "notícia vs. classificação". Confia-se totalmente no conhecimento prévio que o modelo (Qwen 2.5) já possui sobre o que é um crime.
 
@@ -83,3 +85,4 @@ Formato de Resposta:
 }
 """
 ```
+
