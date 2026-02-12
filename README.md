@@ -191,3 +191,6 @@ ollama run llava
 - Dosovitskiy, A., et al. (2020). *"An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale"*. ICLR 2021.
 - Vaswani, A., et al. (2017). *"Attention is All You Need"*. NeurIPS 2017.
 - Radford, A., et al. (2021). *"Learning Transferable Visual Models From Natural Language Supervision"* (CLIP). ICML 2021.
+
+pip install chromadb pypdf tiktoken
+ollama pull nomic-embed-text
