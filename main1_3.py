@@ -1,32 +1,36 @@
-# main1-3
+# ==============================================================================
+# ARQUIVO: main1-3.py
+# OBJETIVO: Construir um endpoint de Chat com IA para Classificação de Crimes com técnica Few-Shot
+# ==============================================================================
 
 from fastapi import FastAPI
 from pydantic import BaseModel
-from openai import OpenAI 
+from openai import OpenAI
 
-client = OpenAI(
-    base_url='http://localhost:11434/v1',
-    api_key='ollama' 
-)
+client = OpenAI(base_url="http://localhost:11434/v1", api_key="ollama")
 
 app = FastAPI(title="IntelliDoc PCDF - Módulo 1")
 
-class BoletimaOcorrencia(BaseModel):
+
+class BoletimOcorrencia(BaseModel):
     relato: str
     delegacia: str = "PCDF Geral"
+
 
 @app.get("/")
 def verificar_status():
     return {"status": "online"}
 
+
 @app.post("/analisar")
 def receber_relato(bo: BoletimOcorrencia):
     return {"recebido": bo.relato}
 
+
 @app.post("/analisar_inteligente")
 def analisar_com_ia(bo: BoletimOcorrencia):
     print(f"Processando com Few-Shot...")
-    
+
     # [MUDANÇA AQUI] PROMPT AVANÇADO (FEW-SHOT + CONSTRAINTS)
     # Ensinamos o padrão através de exemplos.
     prompt_sistema = """
@@ -50,17 +54,23 @@ def analisar_com_ia(bo: BoletimOcorrencia):
     
     Agora classifique o novo relato:
     """
-    
+
     response = client.chat.completions.create(
-        model="llama3.2",
+        model="qwen2.5:3b",
         messages=[
             {"role": "system", "content": prompt_sistema},
-            {"role": "user", "content": bo.relato}
+            {"role": "user", "content": bo.relato},
         ],
-        temperature=0.0 # Temperatura ZERO para máxima precisão
+        temperature=0.2,  # Baixa criatividade para evitar invenções (varia de 0 a 1)
     )
-    
+
     return {
         "tecnica": "Few-Shot Prompting",
-        "classificacao_ia": response.choices.message.content
+        "classificacao_ia": response.choices[0].message.content,
     }
+
+
+# ==============================================================================
+# RODAR NO TERMINAL:
+# uvicorn main1_3:app --reload
+# ==============================================================================

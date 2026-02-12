@@ -1,4 +1,7 @@
-main1-4
+# ==============================================================================
+# ARQUIVO: main1_4.py
+# OBJETIVO: Construir um endpoint de Chat com IA para Classificação de Crimes com técnica Chain of Thoughts
+# ==============================================================================
 
 from fastapi import FastAPI
 from pydantic import BaseModel
@@ -22,6 +25,7 @@ def verificar_status():
 # Rota anterior (Few-Shot) continua aqui...
 @app.post("/analisar_inteligente")
 def analisar_com_ia(bo: BoletimOcorrencia):
+    print(f"Enviando para o Llama: {bo.relato}...")
     prompt_sistema = """
     Você é um classificador. Classifique em: [FURTO, ROUBO, ESTELIONATO].
     Exemplos:
@@ -29,7 +33,7 @@ def analisar_com_ia(bo: BoletimOcorrencia):
     "Sumiu da mesa" -> FURTO
     """
     response = client.chat.completions.create(
-        model="llama3.2",
+        model="qwen2.5:3b",
         messages=[{"role": "system", "content": prompt_sistema},
                   {"role": "user", "content": bo.relato}],
         temperature=0.0
@@ -57,7 +61,7 @@ def analisar_raciocinio(bo: BoletimOcorrencia):
     """
     
     response = client.chat.completions.create(
-        model="llama3.2",
+        model="qwen2.5:3b",
         messages=[
             {"role": "system", "content": prompt_cot},
             {"role": "user", "content": bo.relato}
@@ -69,3 +73,8 @@ def analisar_raciocinio(bo: BoletimOcorrencia):
         "tecnica": "Chain of Thought (CoT)",
         "analise_completa": response.choices[0].message.content
     }
+
+# ==============================================================================
+# RODAR NO TERMINAL:
+# uvicorn main1_4:app --reload
+# ==============================================================================
