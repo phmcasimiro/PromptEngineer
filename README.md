@@ -194,3 +194,6 @@ ollama run llava
 
 pip install chromadb pypdf tiktoken
 ollama pull nomic-embed-text
+
+
+

@@ -3,6 +3,9 @@
 # OBJETIVO: Receber Texto + Imagem e validar consistência (Detector de Fraude)
 # ==============================================================================
 from fastapi import FastAPI, UploadFile, File, Form
+from fastapi import FastAPI, UploadFile, File, Form
+from fastapi import FastAPI, UploadFile, File, Form
+from fastapi import FastAPI, UploadFile, File, Form
 from openai import OpenAI
 import base64
 
