@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IntelliDoc — Escrivão Virtual PCDF</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0a0e1a;
+      --bg-card: #111827;
+      --bg-input: #1a2236;
+      --border: #1e2d45;
+      --gold: #f0b429;
+      --gold-dim: #a07410;
+      --blue: #1d4ed8;
+      --blue-light: #3b82f6;
+      --text: #e5eaf3;
+      --text-dim: #8494a8;
+      --green: #10b981;
+      --red: #ef4444;
+      --radius: 12px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── HEADER ── */
+    header {
+      background: linear-gradient(135deg, #0a0e1a 0%, #0f1e38 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 18px 32px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .badge {
+      width: 48px; height: 48px;
+      background: linear-gradient(135deg, var(--gold), #c89b2e);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px;
+      box-shadow: 0 0 20px rgba(240,180,41,0.3);
+      flex-shrink: 0;
+    }
+    header h1 { font-size: 1.3rem; font-weight: 700; color: var(--text); }
+    header p { font-size: 0.78rem; color: var(--text-dim); margin-top: 2px; }
+    .status-pill {
+      margin-left: auto;
+      display: flex; align-items: center; gap: 6px;
+      font-size: 0.75rem; color: var(--text-dim);
+    }
+    .status-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: #555; transition: background 0.3s;
+    }
+    .status-dot.online { background: var(--green); box-shadow: 0 0 8px var(--green); }
+
+    /* ── LAYOUT ── */
+    .container { display: flex; min-height: calc(100vh - 79px); }
+
+    /* ── SIDEBAR ── */
+    nav {
+      width: 230px; flex-shrink: 0;
+      background: var(--bg-card);
+      border-right: 1px solid var(--border);
+      padding: 24px 12px;
+    }
+    nav h2 {
+      font-size: 0.68rem; font-weight: 600; letter-spacing: 0.1em;
+      color: var(--text-dim); text-transform: uppercase;
+      padding: 0 8px; margin-bottom: 12px;
+    }
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px; border-radius: 8px;
+      cursor: pointer; transition: all 0.18s;
+      font-size: 0.87rem; color: var(--text-dim);
+      margin-bottom: 4px;
+    }
+    .nav-item:hover { background: var(--bg-input); color: var(--text); }
+    .nav-item.active {
+      background: linear-gradient(135deg, #1a2e50, #1e3a62);
+      color: var(--gold);
+      border-left: 3px solid var(--gold);
+    }
+    .nav-item .icon { font-size: 1.1rem; width: 22px; text-align: center; }
+    .nav-badge {
+      margin-left: auto; font-size: 0.6rem; font-weight: 700;
+      background: var(--border); padding: 2px 6px; border-radius: 99px;
+      color: var(--text-dim); text-transform: uppercase;
+    }
+    .nav-item.active .nav-badge { background: var(--gold-dim); color: var(--gold); }
+
+    /* ── MAIN PANEL ── */
+    main { flex: 1; padding: 32px; overflow-y: auto; }
+
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    .panel-header { margin-bottom: 24px; }
+    .panel-header h2 { font-size: 1.4rem; font-weight: 700; }
+    .panel-header p { color: var(--text-dim); font-size: 0.875rem; margin-top: 6px; line-height: 1.5; }
+    .tag {
+      display: inline-block; font-size: 0.65rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      padding: 3px 8px; border-radius: 4px;
+      background: #192845; color: var(--blue-light);
+      border: 1px solid #1e3a70; margin-bottom: 10px;
+    }
+
+    /* ── FORM ── */
+    .form-group { margin-bottom: 20px; }
+    label { display: block; font-size: 0.82rem; font-weight: 500; color: var(--text-dim); margin-bottom: 8px; }
+    textarea, input[type="text"] {
+      width: 100%;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.9rem;
+      padding: 14px 16px;
+      resize: vertical;
+      transition: border-color 0.2s;
+    }
+    textarea { min-height: 120px; }
+    textarea:focus, input:focus {
+      outline: none;
+      border-color: var(--blue-light);
+      box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
+    }
+    textarea::placeholder { color: #3d4f67; }
+
+    /* image upload */
+    .upload-zone {
+      border: 2px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 36px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: var(--bg-input);
+    }
+    .upload-zone:hover { border-color: var(--blue-light); }
+    .upload-zone.has-file { border-color: var(--green); background: #0a2015; }
+    .upload-zone input { display: none; }
+    .upload-zone .icon { font-size: 2.5rem; margin-bottom: 10px; }
+    .upload-zone p { font-size: 0.85rem; color: var(--text-dim); }
+    .upload-zone .file-name { color: var(--green); font-weight: 500; font-size: 0.9rem; margin-top: 8px; }
+    #image-preview { max-width: 100%; max-height: 220px; border-radius: 8px; margin-top: 14px; display: none; object-fit: cover; }
+
+    /* ── BUTTON ── */
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: linear-gradient(135deg, #1d4ed8, #2563eb);
+      color: #fff; font-size: 0.9rem; font-weight: 600;
+      border: none; border-radius: var(--radius);
+      padding: 13px 28px; cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 4px 14px rgba(29,78,216,0.4);
+    }
+    .btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(29,78,216,0.5); }
+    .btn:active { transform: translateY(0); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .spinner {
+      width: 16px; height: 16px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: none;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── RESULT ── */
+    .result-area { margin-top: 28px; }
+    .result-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      animation: fadeUp 0.3s ease;
+    }
+    @keyframes fadeUp { from { opacity:0; transform: translateY(10px); } to { opacity:1; transform: translateY(0); } }
+    .result-card h3 {
+      font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em;
+      color: var(--text-dim); font-weight: 600; margin-bottom: 16px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .result-card h3::after { content:''; flex:1; height:1px; background: var(--border); }
+
+    /* field rows */
+    .result-field { margin-bottom: 14px; }
+    .result-field .field-label {
+      font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em;
+      color: var(--text-dim); font-weight: 600; margin-bottom: 4px;
+    }
+    .result-field .field-value {
+      font-size: 0.92rem; color: var(--text); line-height: 1.6;
+    }
+
+    /* crime pill */
+    .crime-pill {
+      display: inline-block;
+      font-size: 1rem; font-weight: 700;
+      padding: 4px 14px; border-radius: 6px;
+      background: #1a2e50; color: var(--gold);
+      border: 1px solid var(--gold-dim);
+    }
+    .gravidade-pill {
+      display: inline-block; font-size: 0.75rem; font-weight: 700;
+      padding: 3px 10px; border-radius: 4px; margin-left: 8px;
+    }
+    .ALTA  { background:#3b0a0a; color:#f87171; border:1px solid #7f1d1d; }
+    .MÉDIA { background:#3b2600; color:#fb923c; border:1px solid #7c2d12; }
+    .BAIXA { background:#0a2e1a; color:#34d399; border:1px solid #065f46; }
+
+    /* sources */
+    .sources { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
+    .source-chip {
+      font-size: 0.72rem; padding: 3px 10px; border-radius: 4px;
+      background: #1a2e50; color: var(--blue-light); border: 1px solid #1e3a70;
+    }
+
+    /* cot steps */
+    .cot-steps { display: flex; flex-direction: column; gap: 12px; }
+    .cot-step {
+      display: flex; gap: 14px;
+      background: var(--bg-input);
+      border-radius: 8px; padding: 14px;
+    }
+    .cot-step .step-num {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: #1e3a70; color: var(--blue-light);
+      font-size: 0.75rem; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .cot-step .step-label { font-size: 0.72rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; }
+    .cot-step .step-text { font-size: 0.88rem; color: var(--text); margin-top: 3px; line-height: 1.5; }
+
+    /* error */
+    .error-card {
+      background: #1a0a0a; border: 1px solid #7f1d1d;
+      border-radius: var(--radius); padding: 16px;
+      color: #f87171; font-size: 0.85rem;
+      display: flex; align-items: flex-start; gap: 10px;
+    }
+
+    /* ── DIVIDER ── */
+    hr { border: none; border-top: 1px solid var(--border); margin: 28px 0; }
+
+    /* scrollbar */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="badge">🛡️</div>
+  <div>
+    <h1>IntelliDoc — Escrivão Virtual</h1>
+    <p>Sistema de análise de crimes patrimoniais · PCDF</p>
+  </div>
+  <div class="status-pill">
+    <div class="status-dot" id="status-dot"></div>
+    <span id="status-text">Verificando...</span>
+  </div>
+</header>
+
+<div class="container">
+  <nav>
+    <h2>Módulos</h2>
+
+    <div class="nav-item active" onclick="showPanel('zs')">
+      <span class="icon">⚡</span>
+      <span>Zero-Shot</span>
+      <span class="nav-badge">Rápido</span>
+    </div>
+    <div class="nav-item" onclick="showPanel('fs')">
+      <span class="icon">📋</span>
+      <span>Few-Shot</span>
+      <span class="nav-badge">Exemplos</span>
+    </div>
+    <div class="nav-item" onclick="showPanel('cot')">
+      <span class="icon">🧠</span>
+      <span>Raciocínio</span>
+      <span class="nav-badge">CoT</span>
+    </div>
+    <div class="nav-item" onclick="showPanel('rag')">
+      <span class="icon">📚</span>
+      <span>Código Penal</span>
+      <span class="nav-badge">RAG</span>
+    </div>
+    <div class="nav-item" onclick="showPanel('visao')">
+      <span class="icon">📷</span>
+      <span>Visão</span>
+      <span class="nav-badge">Imagem</span>
+    </div>
+  </nav>
+
+  <main>
+
+    <!-- ══ ZERO-SHOT ══ -->
+    <div class="panel active" id="panel-zs">
+      <div class="panel-header">
+        <div class="tag">⚡ Zero-Shot</div>
+        <h2>Classificação Rápida</h2>
+        <p>Descreva o que aconteceu com suas palavras. A IA irá identificar o crime e o nível de gravidade imediatamente, sem precisar de exemplos.</p>
+      </div>
+      <div class="form-group">
+        <label for="zs-input">📝 Relato da Ocorrência</label>
+        <textarea id="zs-input" placeholder="Ex: Um homem pulou o muro do meu quintal às 2h da manhã e levou minha bicicleta que estava no pátio..."></textarea>
+      </div>
+      <button class="btn" id="zs-btn" onclick="runZeroShot()">
+        <span class="spinner" id="zs-spinner"></span>
+        <span>🔍 Analisar</span>
+      </button>
+      <div class="result-area" id="zs-result"></div>
+    </div>
+
+    <!-- ══ FEW-SHOT ══ -->
+    <div class="panel" id="panel-fs">
+      <div class="panel-header">
+        <div class="tag">📋 Few-Shot</div>
+        <h2>Tipificação com Exemplos</h2>
+        <p>A IA usa exemplos de crimes já tipificados para garantir maior precisão na classificação do seu caso.</p>
+      </div>
+      <div class="form-group">
+        <label for="fs-input">📝 Relato da Ocorrência</label>
+        <textarea id="fs-input" placeholder="Ex: Recebi uma mensagem do meu banco pedindo para confirmar meus dados. Cliquei no link e dois dias depois someram R$ 3.000 da minha conta..."></textarea>
+      </div>
+      <button class="btn" id="fs-btn" onclick="runFewShot()">
+        <span class="spinner" id="fs-spinner"></span>
+        <span>🔍 Tipificar Crime</span>
+      </button>
+      <div class="result-area" id="fs-result"></div>
+    </div>
+
+    <!-- ══ CHAIN-OF-THOUGHT ══ -->
+    <div class="panel" id="panel-cot">
+      <div class="panel-header">
+        <div class="tag">🧠 Chain-of-Thought</div>
+        <h2>Análise Jurídica Detalhada</h2>
+        <p>Para casos complexos ou ambíguos. A IA raciocina passo a passo — como um Delegado — antes de dar o veredito.</p>
+      </div>
+      <div class="form-group">
+        <label for="cot-input">📝 Descreva a ocorrência em detalhes</label>
+        <textarea id="cot-input" style="min-height:150px" placeholder="Ex: Um motorista de aplicativo pegou minhas compras no supermercado e deveria entregar em casa. Ele confirmou a retirada no app, mas nunca chegou. Quando tentei contato, ele não atendeu e parou de responder..."></textarea>
+      </div>
+      <button class="btn" id="cot-btn" onclick="runCoT()">
+        <span class="spinner" id="cot-spinner"></span>
+        <span>⚖️ Analisar como Delegado</span>
+      </button>
+      <div class="result-area" id="cot-result"></div>
+    </div>
+
+    <!-- ══ RAG ══ -->
+    <div class="panel" id="panel-rag">
+      <div class="panel-header">
+        <div class="tag">📚 RAG · Memória Legal</div>
+        <h2>Fundamentação no Código Penal</h2>
+        <p>A IA consulta o banco de artigos do Código Penal e responde com citação direta da lei. Ideal para obter a fundamentação jurídica exata.</p>
+      </div>
+      <div class="form-group">
+        <label for="rag-input">⚖️ Descreva o caso ou faça uma pergunta jurídica</label>
+        <textarea id="rag-input" placeholder="Ex: Qual a pena para quem arromba uma residência e subtrai bens? / Uma pessoa usou minha identidade para fazer empréstimo..."></textarea>
+      </div>
+      <button class="btn" id="rag-btn" onclick="runRAG()">
+        <span class="spinner" id="rag-spinner"></span>
+        <span>📖 Consultar Código Penal</span>
+      </button>
+      <div class="result-area" id="rag-result"></div>
+    </div>
+
+    <!-- ══ VISÃO ══ -->
+    <div class="panel" id="panel-visao">
+      <div class="panel-header">
+        <div class="tag">📷 Visão Computacional</div>
+        <h2>Análise de Evidências Fotográficas</h2>
+        <p>Envie uma foto da cena do crime ou de uma evidência. A IA irá descrever danos, identificar ferramentas e classificar a cena como um perito.</p>
+      </div>
+      <div class="form-group">
+        <label>🖼️ Foto da Evidência ou Cena</label>
+        <div class="upload-zone" id="upload-zone" onclick="document.getElementById('visao-input').click()">
+          <input type="file" id="visao-input" accept="image/*" onchange="previewImage(event)" />
+          <div class="icon" id="upload-icon">📁</div>
+          <p id="upload-hint">Clique para selecionar uma imagem (JPG, PNG)</p>
+          <p class="file-name" id="file-name-display"></p>
+        </div>
+        <img id="image-preview" alt="Pré-visualização da evidência" />
+      </div>
+      <button class="btn" id="visao-btn" onclick="runVisao()">
+        <span class="spinner" id="visao-spinner"></span>
+        <span>🔬 Analisar Evidência</span>
+      </button>
+      <div class="result-area" id="visao-result"></div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+  const API = 'http://localhost:8000';
+
+  // ── Status check ──
+  async function checkStatus() {
+    try {
+      const r = await fetch(`${API}/`);
+      if (r.ok) {
+        document.getElementById('status-dot').classList.add('online');
+        document.getElementById('status-text').textContent = 'Servidor Online';
+      }
+    } catch { document.getElementById('status-text').textContent = 'Servidor Offline'; }
+  }
+  checkStatus();
+
+  // ── Navigation ──
+  function showPanel(id) {
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById('panel-' + id).classList.add('active');
+    event.currentTarget.classList.add('active');
+  }
+
+  // ── Loading helpers ──
+  function setLoading(id, on) {
+    const btn = document.getElementById(id + '-btn');
+    const sp  = document.getElementById(id + '-spinner');
+    btn.disabled = on;
+    sp.style.display = on ? 'block' : 'none';
+  }
+
+  function showError(id, msg) {
+    document.getElementById(id + '-result').innerHTML = `
+      <div class="error-card">⚠️ <span>${msg}</span></div>`;
+  }
+
+  // ── Result renderers ──
+  function renderZeroShot(data) {
+    const grav = data.gravidade || 'MÉDIA';
+    return `
+      <div class="result-card">
+        <h3>🔍 Resultado da Análise</h3>
+        <div class="result-field">
+          <div class="field-label">Crime Identificado</div>
+          <div class="field-value">
+            <span class="crime-pill">${data.crime_provavel || '—'}</span>
+            <span class="gravidade-pill ${grav}">${grav}</span>
+          </div>
+        </div>
+        <div class="result-field">
+          <div class="field-label">Resumo</div>
+          <div class="field-value">${data.resumo_curto || '—'}</div>
+        </div>
+      </div>`;
+  }
+
+  function renderFewShot(data) {
+    return `
+      <div class="result-card">
+        <h3>📋 Tipificação</h3>
+        <div class="result-field">
+          <div class="field-label">Crime</div>
+          <div class="field-value"><span class="crime-pill">${data.tipificacao || '—'}</span></div>
+        </div>
+        <div class="result-field">
+          <div class="field-label">Base Legal</div>
+          <div class="field-value">${data.base_legal || '—'}</div>
+        </div>
+        <div class="result-field">
+          <div class="field-label">Explicação</div>
+          <div class="field-value">${data.explicacao || '—'}</div>
+        </div>
+      </div>`;
+  }
+
+  function renderCoT(data) {
+    const a = data.analise_detalhada || {};
+    const v = data.veredito || {};
+    return `
+      <div class="result-card">
+        <h3>🧠 Raciocínio do Delegado</h3>
+        <div class="cot-steps">
+          <div class="cot-step">
+            <div class="step-num">1</div>
+            <div>
+              <div class="step-label">Fatos</div>
+              <div class="step-text">${a.fatos || '—'}</div>
+            </div>
+          </div>
+          <div class="cot-step">
+            <div class="step-num">2</div>
+            <div>
+              <div class="step-label">Violência / Ameaça</div>
+              <div class="step-text">${a.violencia || '—'}</div>
+            </div>
+          </div>
+          <div class="cot-step">
+            <div class="step-num">3</div>
+            <div>
+              <div class="step-label">Inversão de Posse</div>
+              <div class="step-text">${a.posse || '—'}</div>
+            </div>
+          </div>
+          <div class="cot-step">
+            <div class="step-num">4</div>
+            <div>
+              <div class="step-label">Qualificadoras</div>
+              <div class="step-text">${a.qualificadoras || '—'}</div>
+            </div>
+          </div>
+        </div>
+        <hr>
+        <div class="result-field">
+          <div class="field-label">Veredito</div>
+          <div class="field-value"><span class="crime-pill">${v.crime || '—'}</span> · ${v.artigo || ''}</div>
+        </div>
+        <div class="result-field">
+          <div class="field-label">Fundamentação Jurídica</div>
+          <div class="field-value">${v.fundamentacao_juridica || '—'}</div>
+        </div>
+      </div>`;
+  }
+
+  function renderRAG(raw, fontes) {
+    const chips = (fontes || []).map(f =>
+      `<span class="source-chip">📄 ${f.title || f.source || 'Artigo'}</span>`).join('');
+    let texto = '—';
+    try {
+      const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
+      texto = Object.values(parsed).join(' ');
+    } catch { texto = typeof raw === 'string' ? raw : JSON.stringify(raw, null, 2); }
+    return `
+      <div class="result-card">
+        <h3>📚 Análise com Base no CP</h3>
+        <div class="result-field">
+          <div class="field-label">Fundamentação</div>
+          <div class="field-value">${texto}</div>
+        </div>
+        <div class="result-field">
+          <div class="field-label">Artigos Consultados</div>
+          <div class="sources">${chips || '<span style="color:var(--text-dim)">Nenhuma fonte retornada</span>'}</div>
+        </div>
+      </div>`;
+  }
+
+  function renderVisao(data) {
+    const obj = (data.objetos_relevantes || []).map(o => `<span class="source-chip">${o}</span>`).join('');
+    return `
+      <div class="result-card">
+        <h3>🔬 Laudo Técnico</h3>
+        <div class="result-field">
+          <div class="field-label">Classificação da Cena</div>
+          <div class="field-value"><span class="crime-pill">${data.classificacao_da_cena || '—'}</span></div>
+        </div>
+        <div class="result-field">
+          <div class="field-label">Danos Identificados</div>
+          <div class="field-value">${data.danos_identificados || '—'}</div>
+        </div>
+        <div class="result-field">
+          <div class="field-label">Descrição Técnica</div>
+          <div class="field-value">${data.descricao_da_evidencia || '—'}</div>
+        </div>
+        <div class="result-field">
+          <div class="field-label">Objetos Relevantes</div>
+          <div class="sources">${obj || '<span style="color:var(--text-dim)">Nenhum</span>'}</div>
+        </div>
+      </div>`;
+  }
+
+  // ── Parsers seguros ──
+  function safeParse(raw) {
+    if (typeof raw === 'object') return raw;
+    try { return JSON.parse(raw); } catch { return {}; }
+  }
+
+  // ── API calls ──
+  async function runZeroShot() {
+    const text = document.getElementById('zs-input').value.trim();
+    if (!text) return;
+    setLoading('zs', true);
+    try {
+      const r = await fetch(`${API}/zero_shot/classificar`, {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({texto: text})
+      });
+      const data = safeParse(await r.json());
+      document.getElementById('zs-result').innerHTML = renderZeroShot(data);
+    } catch(e) { showError('zs', e.message); }
+    setLoading('zs', false);
+  }
+
+  async function runFewShot() {
+    const text = document.getElementById('fs-input').value.trim();
+    if (!text) return;
+    setLoading('fs', true);
+    try {
+      const r = await fetch(`${API}/few_shot/analisar`, {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({texto: text})
+      });
+      const data = safeParse(await r.json());
+      document.getElementById('fs-result').innerHTML = renderFewShot(data);
+    } catch(e) { showError('fs', e.message); }
+    setLoading('fs', false);
+  }
+
+  async function runCoT() {
+    const text = document.getElementById('cot-input').value.trim();
+    if (!text) return;
+    setLoading('cot', true);
+    try {
+      const r = await fetch(`${API}/cot/analisar_cot`, {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({relato: text})
+      });
+      const data = safeParse(await r.json());
+      document.getElementById('cot-result').innerHTML = renderCoT(data);
+    } catch(e) { showError('cot', e.message); }
+    setLoading('cot', false);
+  }
+
+  async function runRAG() {
+    const text = document.getElementById('rag-input').value.trim();
+    if (!text) return;
+    setLoading('rag', true);
+    try {
+      const r = await fetch(`${API}/rag/tipificar_caso`, {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({texto: text})
+      });
+      const body = await r.json();
+      document.getElementById('rag-result').innerHTML = renderRAG(body.analise_baseada_no_cp, body.fontes_consultadas);
+    } catch(e) { showError('rag', e.message); }
+    setLoading('rag', false);
+  }
+
+  async function runVisao() {
+    const file = document.getElementById('visao-input').files[0];
+    if (!file) return;
+    setLoading('visao', true);
+    try {
+      const fd = new FormData();
+      fd.append('arquivo', file);
+      const r = await fetch(`${API}/visao/analisar_evidencia`, { method: 'POST', body: fd });
+      const data = safeParse(await r.json());
+      document.getElementById('visao-result').innerHTML = renderVisao(data);
+    } catch(e) { showError('visao', e.message); }
+    setLoading('visao', false);
+  }
+
+  // ── Image preview ──
+  function previewImage(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const zone = document.getElementById('upload-zone');
+    zone.classList.add('has-file');
+    document.getElementById('upload-icon').textContent = '✅';
+    document.getElementById('upload-hint').textContent = 'Imagem selecionada:';
+    document.getElementById('file-name-display').textContent = file.name;
+    const preview = document.getElementById('image-preview');
+    preview.src = URL.createObjectURL(file);
+    preview.style.display = 'block';
+  }
+
+  // ── Enter to submit ──
+  ['zs','fs','cot','rag'].forEach(id => {
+    document.getElementById(id + '-input').addEventListener('keydown', e => {
+      if (e.key === 'Enter' && e.ctrlKey) {
+        document.getElementById(id + '-btn').click();
+      }
+    });
+  });
+</script>
+</body>
+</html>
