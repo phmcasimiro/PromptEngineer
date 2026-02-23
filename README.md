@@ -1,199 +1,375 @@
-# OLLAMA
+# 🏛️ IntelliDoc — O Escrivão Virtual de Crimes Patrimoniais
 
-## DOWNLOAD OLLAMA
+**Disciplina:** Prompt Engineering Avançado — Prof. Dr. Wandré Nunes de Pinho Veloso
+**Aluno:** Pedro Casimiro
 
-`curl -fsSL https://ollama.com/install.sh | sh`
+---
 
-## COMANDOS OLLAMA
+## 📖 O que é este projeto?
 
-`ollama list` Lista os modelos que já estão baixados
+O **IntelliDoc** é uma **API web com Inteligência Artificial** especializada em auxiliar delegacias na classificação e análise de **crimes contra o patrimônio** (Furto, Roubo, Estelionato, entre outros).
 
-`ollama pull [nome]` Baixa um modelo sem iniciar o chat.
+A IA atua como um **"Escrivão Virtual"** da PCDF: você envia um relato de crime como texto (ou uma imagem de evidência), e ela retorna uma análise técnica com a tipificação penal correta, fundamentada no Código Penal Brasileiro.
 
-`ollama rm [nome]` Remove um modelo para liberar espaço em disco.
+> **O que é uma API?** É um programa que roda como um servidor e responde a chamadas externas. Neste caso, você manda um relato e recebe de volta uma análise em formato JSON.
 
-`ollama ps` Mostra quais modelos estão rodando na memória no momento.
+---
 
-## RUN OLLAMA
+## 🗂️ Estrutura do Projeto
 
-- Primeiro Modelo a ser utilizado Llama 3.2 (leve)
-
-`ollama run llama3.2`
-
-## ACESSANDO A API
-
-- Caso precise conectar o Ollama com o Python ou LangChain, utilize o comando abaixo para verificar se a API está rodando:
-
-`curl http://localhost:11434/api/tags`
-
-## TÉCNICA ZERO SHOT
-
-No Zero-Shot é fornecida a instrução e a tarefa sem dar nenhum exemplo prévio de "notícia vs. classificação". Confia-se totalmente no conhecimento prévio que o modelo (Qwen 2.5) já possui sobre o que é um crime.
-
-```json
-SYSTEM_PROMPT=
-"""
-Você é um assistente especializado em segurança pública brasileira.
-Sua tarefa é ler uma notícia e classificar o crime em uma destas categorias: 
-[HOMICIDIO, ROUBO, FURTO, TRAFICO, ESTELIONATO, OUTROS].
-
-Regras:
-1. Responda APENAS com um objeto JSON.
-2. O JSON deve ter duas chaves: "categoria" e "justificativa".
+```
+4_PromptEng/
+│
+├── app/                        ← 📌 APLICAÇÃO PRINCIPAL
+│   ├── main.py                 ← Ponto de entrada: inicializa o servidor
+│   ├── config.py               ← Configurações (modelos, URLs, banco)
+│   ├── routers/
+│   │   ├── zero_shot.py        ← Endpoint 1: classificação rápida
+│   │   ├── few_shot.py         ← Endpoint 2: classificação com exemplos
+│   │   ├── chain_of_thought.py ← Endpoint 3: análise passo a passo
+│   │   ├── rag.py              ← Endpoint 4: pesquisa no Código Penal
+│   │   └── visao.py            ← Endpoint 5: análise de imagens
+│   ├── static/
+│   │   └── index.html          ← 🖥️ INTERFACE WEB (Frontend)
+│   └── scripts/
+│       └── index_cp.py         ← Script para criar o banco de artigos de lei
+│
+├── aulas/                      ← 📚 Exercícios das aulas (Aula 1 a 4)
+│   ├── aula1/                  ← FastAPI básico, Zero-Shot, Few-Shot, CoT
+│   ├── aula2/                  ← Visão Computacional
+│   ├── aula3/                  ← RAG e Sumarização
+│   └── aula4/                  ← Benchmark de performance
+│
+├── banco_vetorial/             ← 🗃️ Banco de dados ChromaDB (artigos do CP)
+├── docs/                       ← 📄 Documentos de referência
+│   ├── CrimesPatrimonio_CP.md  ← Código Penal formatado para IA
+│   ├── CrimesPatrimonio_Simulado.md ← Questões de concurso para teste
+│   ├── ollama.md               ← Guia do Ollama
+│   └── PromptEng.md            ← Material teórico de Prompt Engineering
+│
+├── img/                        ← 🖼️ Imagens para testar o endpoint de visão
+├── requirements.txt            ← 📦 Lista de pacotes Python necessários
+└── README.md                   ← Este arquivo!
 ```
 
-## TÉCNICA FEW SHOT
+---
 
-No Few-Shot "ensinamos" o modelo fornecendo alguns exemplos de entrada e saída esperada dentro do prompt. Essa técnica é utilizada para casos onde o modelo precisa entender a diferença técnica entre crimes (ex: Roubo envolve violência, Furto não).
+## 🖥️ Interface Web (Frontend)
 
-```json
-SYSTEM_PROMPT = """
-Você é um assistente especializado em segurança pública brasileira.
-Sua tarefa é ler uma notícia e classificar o crime conforme os exemplos abaixo:
+O projeto inclui uma interface gráfica completa, acessível pelo navegador, sem precisar instalar nenhum programa extra. Com o servidor rodando, acesse:
 
-Exemplo 1:
-Notícia: "Indivíduo levou a carteira da vítima que estava distraída no metrô, sem que ela percebesse."
-Resposta: {"categoria": "FURTO", "justificativa": "Subtração de bens sem uso de violência ou ameaça."}
+> **[http://localhost:8000/static/index.html](http://localhost:8000/static/index.html)**
 
-Exemplo 2:
-Notícia: "Dois homens armados renderam o motorista e levaram o carro sob graves ameaças."
-Resposta: {"categoria": "ROUBO", "justificativa": "Subtração de bem mediante uso de arma e ameaça direta."}
+### O que você encontrará na interface:
 
-Agora, classifique a notícia fornecida seguindo este padrão de JSON.
-Categorias permitidas: [HOMICIDIO, ROUBO, FURTO, TRAFICO, ESTELIONATO, OUTROS].
+| Módulo | O que faz | Como usar |
+| :--- | :--- | :--- |
+| ⚡ **Zero-Shot** | Classificação rápida | Digite o relato e clique em Analisar |
+| 📋 **Few-Shot** | Tipificação com exemplos | Digite o relato e veja a tipificação fundamentada |
+| 🧠 **Raciocínio (CoT)** | Análise jurídica passo a passo | Para casos complexos ou ambíguos |
+| 📚 **Código Penal (RAG)** | Consulta ao CP com citação de artigos | Digite uma pergunta ou descreva o caso |
+| 📷 **Visão** | Análise de fotos de evidências | Faça upload de uma imagem JPG ou PNG |
 
-## TÉCNICA CHAIN OF THOUGHTS (CoT)
+> **Dica:** Use `Ctrl + Enter` para enviar o texto rapidamente em qualquer campo.
 
-- Técnica de Engenharia de Prompt que força o modelo a decompor problemas complexos em etapas intermediárias.
-- Ao gerar texto explicando o raciocínio, o modelo cria seu próprio contexto para a resposta final, reduzindo alucinações.
 
-```json
-SYSTEM_PROMPT = """
-Você é um assistente especializado em segurança pública brasileira.
-Sua tarefa é ler uma notícia e classificar o crime.
+---
 
-Siga estes passos de raciocínio:
-1. Identifique os fatos principais da notícia.
-2. Verifique se houve violência ou ameaça grave.
-3. Determine se o bem foi subtraído ou entregue voluntariamente.
-4. Classifique o crime.
+## 🛠️ Pré-requisitos
 
-Formato de Resposta:
-{
-  "raciocinio": "[Explicação passo a passo]",
-  "classificacao": "[Categoria]"
-}
-"""
-```
+Antes de começar, você precisa ter instalado:
 
-## TÉCNICA CHAIN OF THOUGHTS (CoT)
+1. **Python 3.10+** — a linguagem de programação usada.
+2. **Ollama** — motor local para rodar modelos de IA gratuitamente.
+3. **Git** — para clonar o projeto.
 
-- Técnica de Engenharia de Prompt que força o modelo a decompor problemas complexos em etapas intermediárias.
-- Ao gerar texto explicando o raciocínio, o modelo cria seu próprio contexto para a resposta final, reduzindo alucinações.
+---
 
-```json
-SYSTEM_PROMPT = """
-Você é um assistente especializado em segurança pública brasileira.
-Sua tarefa é ler uma notícia e classificar o crime.
+## 🚀 Instalação e Configuração (Passo a Passo)
 
-Siga estes passos de raciocínio:
-1. Identifique os fatos principais da notícia.
-2. Verifique se houve violência ou ameaça grave.
-3. Determine se o bem foi subtraído ou entregue voluntariamente.
-4. Classifique o crime.
+### Passo 1 — Instale o Ollama
 
-Formato de Resposta:
-{
-  "raciocinio": "[Explicação passo a passo]",
-  "classificacao": "[Categoria]"
-}
-"""
-```
+O Ollama roda os modelos de linguagem localmente no seu computador. Acesse [ollama.ai](https://ollama.ai) e siga as instruções de instalação para Linux/macOS.
 
-# VISÃO COMPUTACIONAL
-
-## TÉCNICA MULTIMODAL
-
-Modelos multimodais são sistemas de IA capazes de processar e integrar múltiplas modalidades de dados (texto, imagem, áudio, vídeo) para gerar respostas contextualizadas. Em Prompt Engineering, isso permite que você envie uma imagem junto com uma pergunta em texto e receba uma resposta que considera ambas as informações.
-
-**Exemplos de aplicação:**
-
-- Análise de documentos (extrair texto de faturas, receitas médicas)
-- Descrição automática de imagens para acessibilidade
-- Detecção de objetos e análise de cenas
-- Interpretação de gráficos e diagramas
-
-### VISION TRANSFORMER (ViT)
-
-O **Vision Transformer** (Dosovitskiy et al., 2020) revolucionou a visão computacional ao adaptar a arquitetura Transformer - originalmente criada para processamento de linguagem natural - para processar imagens diretamente, sem depender de redes convolucionais (CNNs).
-
-#### **Arquitetura e Funcionamento**
-
-1. **Divisão em Patches (não pixels individuais)**
-   - A imagem é dividida em **patches** (blocos quadrados), tipicamente de 16×16 pixels
-   - Exemplo: Uma imagem 224×224 pixels → 196 patches de 16×16 pixels cada
-   - Cada patch é "achatado" em um vetor unidimensional de valores numéricos (RGB)
-
-2. **Linear Projection (Projeção Linear)**
-   - Cada vetor de patch passa por uma camada linear que o projeta em um **embedding de dimensão fixa** (ex: 768 dimensões)
-   - Similar ao embedding de palavras em modelos de linguagem (Word2Vec, BERT)
-
-3. **Positional Embeddings (Codificação Posicional)**
-   - Como o Transformer não tem noção de ordem, são adicionados **positional embeddings** aos patches
-   - Isso permite que o modelo "saiba" onde cada patch está localizado na imagem original
-   - Exemplo: O patch do canto superior esquerdo recebe um embedding diferente do patch central
-
-4. **Self-Attention Mechanism (Mecanismo de Auto-Atenção)**
-   - Os patches processados passam por camadas de **self-attention**
-   - O modelo aprende a relacionar diferentes regiões da imagem
-   - Exemplo: Ao ver uma pessoa segurando um guarda-chuva, o modelo relaciona "mão" + "objeto cilíndrico" + "tecido" para identificar "guarda-chuva"
-
-5. **CLS Token (Token de Classificação)**
-   - Um token especial **[CLS]** é adicionado ao início da sequência de patches
-   - Após processar todas as camadas Transformer, o estado final do [CLS] contém a representação global da imagem
-   - Esse vetor é usado para tarefas de classificação ou conectado a uma LLM
-
-#### **Integração com LLMs (Modelos Multimodais)**
-
-Em modelos multimodais modernos (como GPT-4 Vision, LLaVA, CLIP):
-
-1. **Visual Encoder (ViT)** → Processa a imagem e gera embeddings visuais
-2. **Projection Layer** → Traduz os embeddings visuais para o espaço semântico da LLM
-3. **LLM** → Recebe os embeddings visuais concatenados com o texto do prompt
-4. **Geração de Resposta** → A LLM "lê" a imagem como se fosse texto e gera uma resposta contextualizada
-
-**Analogia didática:**  
-Imagine que você está descrevendo uma foto para alguém ao telefone. Você não descreve cada pixel, mas sim "blocos de informação" (patches): "no canto esquerdo há uma árvore, no centro uma pessoa, à direita um carro". O Vision Transformer faz exatamente isso: divide a imagem em blocos significativos e usa atenção para entender como esses blocos se relacionam.
-
-#### **Exemplo Prático com Ollama**
+Após instalar, baixe os modelos necessários:
 
 ```bash
-# Modelo multimodal LLaVA (usa ViT internamente)
-ollama pull llava
+# Modelo de texto (análise e classificação de crimes)
+ollama pull qwen2.5:3b
 
-# Prompt multimodal
-ollama run llava
->>> Analise esta imagem e descreva o que você vê: /path/to/imagem.jpg
->>> [A IA processará a imagem via ViT e gerará uma descrição textual]
+# Modelo de visão (análise de imagens de evidências)
+ollama pull qwen3-vl:8b
+
+# Modelo de embeddings (busca semântica no Código Penal)
+ollama pull nomic-embed-text
 ```
 
-#### **Diferença entre ViT e CNNs tradicionais**
+> ⏳ **Atenção:** O download pode demorar alguns minutos dependendo da sua conexão.
 
-| Aspecto             | CNN (ex: ResNet)                         | Vision Transformer (ViT)                             |
-|---------------------|------------------------------------------|------------------------------------------------------|
-| Processamento       | Local → Global (camadas convolucionais) | Global desde o início (self-attention)               |
-| Inductive Bias      | Forte (assume localidade espacial)      | Fraco (aprende da relação entre patches)             |
-| Dados necessários   | Funciona bem com poucos dados           | Requer grandes datasets (ImageNet-21k)               |
-| Relações long-range | Difícil (requer muitas camadas)         | Natural (self-attention captura diretamente)         |
+### Passo 2 — Instale as dependências Python
 
-#### **Referências**
+No terminal, dentro da pasta do projeto:
 
-- Dosovitskiy, A., et al. (2020). *"An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale"*. ICLR 2021.
-- Vaswani, A., et al. (2017). *"Attention is All You Need"*. NeurIPS 2017.
-- Radford, A., et al. (2021). *"Learning Transferable Visual Models From Natural Language Supervision"* (CLIP). ICML 2021.
+```bash
+pip install -r requirements.txt
+```
 
-pip install chromadb pypdf tiktoken
-ollama pull nomic-embed-text
+### Passo 3 — Crie o banco de artigos do Código Penal (RAG)
 
+Este passo converte o arquivo `docs/CrimesPatrimonio_CP.md` em vetores matemáticos
+armazenados no ChromaDB. Isso permite que a IA pesquise os artigos da lei por
+significado semântico.
 
+```bash
+python3 app/scripts/index_cp.py
+```
 
+Você deverá ver:
+```
+Abrindo docs/CrimesPatrimonio_CP.md...
+Total de 29 blocos identificados para indexação.
+Sucesso! 29 documentos indexados na coleção 'crimes_patrimonio'.
+```
+
+> **Só precisa rodar uma vez!** O banco fica salvo na pasta `banco_vetorial/`.
+
+### Passo 4 — Inicie o servidor
+
+```bash
+uvicorn app.main:app --reload
+```
+
+O servidor estará disponível em `http://localhost:8000`.
+
+A flag `--reload` faz o servidor reiniciar automaticamente quando você edita o código.
+
+---
+
+## 🔍 Como usar a API
+
+Acesse a **documentação interativa** em: [http://localhost:8000/docs](http://localhost:8000/docs)
+
+Lá você pode testar cada endpoint direto pelo navegador, sem precisar de outros programas.
+
+---
+
+## 🧠 Os 5 Endpoints Explicados
+
+### 1. Zero-Shot: classificação rápida
+
+**Rota:** `POST /zero_shot/classificar`
+**Arquivo:** `app/routers/zero_shot.py`
+
+A IA recebe um relato e classifica o crime **sem receber nenhum exemplo prévio**. É como perguntar para um especialista que apenas usa seu próprio conhecimento.
+
+**Exemplo de uso:**
+```json
+POST /zero_shot/classificar
+{
+  "texto": "Um homem pulou o muro e levou minha bicicleta"
+}
+```
+
+**Exemplo de resposta:**
+```json
+{
+  "crime_provavel": "FURTO QUALIFICADO",
+  "gravidade": "MÉDIA",
+  "resumo_curto": "Subtração de bem móvel com escalada de obstáculo."
+}
+```
+
+---
+
+### 2. Few-Shot: classificação com exemplos
+
+**Rota:** `POST /few_shot/analisar`
+**Arquivo:** `app/routers/few_shot.py`
+
+A IA recebe o relato junto com **3 exemplos de crimes já resolvidos** dentro do prompt. Isso aumenta a precisão para crimes comuns (Furto, Roubo, Estelionato).
+
+**Exemplo de corpo da requisição (JSON):**
+```json
+{
+  "texto": "Recebi uma ligação de um falso gerente bancário que pediu meu token e esvaziou minha conta."
+}
+```
+
+**Exemplo de resposta:**
+```json
+{
+  "tipificacao": "ESTELIONATO ELETRÔNICO",
+  "base_legal": "Art. 171, § 2º-A",
+  "explicacao": "Obtenção de vantagem ilícita induzindo a vítima a erro via meio eletrônico."
+}
+```
+
+---
+
+### 3. Chain-of-Thought (CoT): análise passo a passo
+
+**Rota:** `POST /cot/analisar_cot`
+**Arquivo:** `app/routers/chain_of_thought.py`
+
+Para casos **complexos ou ambíguos** (ex: furto mediante fraude vs estelionato), a IA é forçada a raciocinar em etapas antes de dar um veredito. É como um Delegado que pensa em voz alta.
+
+O prompt instrui a IA a responder 4 perguntas antes de concluir:
+1. **Fatos** — O que aconteceu objetivamente?
+2. **Violência/Ameaça** — Houve força física ou ameaça?
+3. **Inversão da Posse** — Como o bem saiu da vítima?
+4. **Qualificadoras** — Há agravantes?
+
+**Exemplo de resposta:**
+```json
+{
+  "analise_detalhada": {
+    "fatos": "Motorista de app recebeu encomendas mas não as entregou.",
+    "violencia": "Não houve violência ou ameaça.",
+    "posse": "O bem foi entregue voluntariamente ao agente (detentor).",
+    "qualificadoras": "Abuso de confiança na relação de trabalho."
+  },
+  "veredito": {
+    "crime": "APROPRIAÇÃO INDÉBITA",
+    "artigo": "Art. 168, caput",
+    "fundamentacao_juridica": "O agente tinha posse lícita do bem e inverteu..."
+  }
+}
+```
+
+---
+
+### 4. RAG: pesquisa no Código Penal
+
+**Rota:** `POST /rag/tipificar_caso`
+**Arquivo:** `app/routers/rag.py`
+
+RAG significa **Retrieval-Augmented Generation** — Geração Aumentada por Recuperação.
+
+**Como funciona em 3 etapas:**
+
+```
+1. VOCÊ envia um relato de crime
+       ↓
+2. A IA pesquisa no banco vetorial (ChromaDB) os artigos do CP mais relevantes
+       ↓
+3. A IA gera a resposta usando APENAS os artigos encontrados como base
+```
+
+Isso garante que a resposta seja **fundamentada em lei real**, não em "achismos" do modelo.
+
+**Exemplo de resposta:**
+```json
+{
+  "analise_baseada_no_cp": "Com base no Art. 155, § 4º, II, configura-se furto qualificado pois...",
+  "fontes_consultadas": [
+    {"source": "Código Penal", "title": "Art. 155 — Furto"},
+    {"source": "Código Penal", "title": "Art. 157 — Roubo"}
+  ]
+}
+```
+
+---
+
+### 5. Visão Computacional: análise de imagens
+
+**Rota:** `POST /visao/analisar_evidencia`
+**Arquivo:** `app/routers/visao.py`
+
+Envia uma **foto** (JPG/PNG) e a IA — usando o modelo multimodal `qwen3-vl:8b` — descreve tecnicamente o que vê: danos em portas, ferramentas de arrombamento, dispositivos fraudulentos em caixas eletrônicos, etc.
+
+**Exemplo de resposta:**
+```json
+{
+  "descricao_da_evidencia": "Porta metálica com marcas de arrombamento na região da fechadura.",
+  "danos_identificados": "Rompimento do cilindro da fechadura por instrumento pontiagudo.",
+  "objetos_relevantes": ["gazua", "marcas de ferramenta", "fechadura danificada"],
+  "classificacao_da_cena": "Arrombamento de residência"
+}
+```
+
+---
+
+## ⚙️ Como a IA funciona por baixo dos panos
+
+```
+Seu relato (texto)
+       │
+       ▼
+ ┌─────────────┐    HTTP Request    ┌─────────────┐
+ │  Seu       │ ─────────────────► │  FastAPI    │
+ │  Navegador │                    │  (app/)     │
+ └─────────────┘                   └──────┬──────┘
+                                          │ Formata o prompt_sistema
+                                          │ e chama o Ollama
+                                          ▼
+                                   ┌─────────────┐
+                                   │   Ollama    │  ← roda localmente
+                                   │ qwen2.5:3b  │     no seu PC
+                                   └──────┬──────┘
+                                          │ Resposta em JSON
+                                          ▼
+                                   ┌─────────────┐
+                                   │  FastAPI    │  ← devolve para
+                                   │  retorna    │     você
+                                   └─────────────┘
+```
+
+O **Prompt de Sistema** (`prompt_sistema`) é o "manual de instruções" que diz para a IA
+qual persona assumir ("Você é um Escrivão da PCDF...") e como formatar a resposta (JSON).
+
+---
+
+## 📦 Pacotes Python usados (requirements.txt)
+
+| Pacote | Para que serve |
+| :--- | :--- |
+| `fastapi` | Cria o servidor web e as rotas da API |
+| `uvicorn` | Motor que executa o servidor FastAPI |
+| `ollama` | Comunica com os modelos de IA locais |
+| `chromadb` | Banco de dados vetorial para o RAG |
+| `python-dotenv` | Carrega variáveis de configuração (.env) |
+| `python-multipart` | Permite receber arquivos (imagens) via API |
+| `openai` | Client compatível com a API do Ollama |
+| `pypdf` | Leitura de arquivos PDF |
+| `psutil` | Monitora uso de memória e CPU |
+
+---
+
+## 📚 Material de Apoio (pasta `docs/`)
+
+| Arquivo | Conteúdo |
+| :--- | :--- |
+| `ollama.md` | Guia completo do Ollama com cheat sheet de comandos |
+| `PromptEng.md` | Teoria de todas as técnicas de Prompt Engineering |
+| `RAG.md` | Explicação detalhada de como funciona o RAG |
+| `CrimesPatrimonio_CP.md` | Código Penal (Arts. 155–183) formatado para IA |
+| `CrimesPatrimonio_Simulado.md` | Questões de concurso para validar os endpoints |
+
+---
+
+## 📝 Requisitos do Trabalho Final
+
+**Objetivo:** Personalizar e demonstrar o funcionamento da API IntelliDoc com pelo menos **3 endpoints funcionais** para um tema de especialização escolhido.
+
+### 1. A Personalidade (System Prompt)
+
+Altere o `prompt_sistema` dos endpoints para criar um especialista no tema
+escolhido — com regras de formatação (JSON) e instruções específicas de classificação.
+
+### 2. O Raciocínio (Chain-of-Thought)
+
+Crie um caso complexo/ambíguo relacionado ao seu tema e demonstre como o endpoint
+`/cot/analisar_cot` mostra o raciocínio jurídico passo a passo para resolvê-lo.
+
+### 3. A Memória (RAG)
+
+Indexe documentos específicos do seu tema (leis, portarias, jurisprudência) no
+ChromaDB e demonstre que a IA recupera e cita essas fontes nas respostas.
+
+### 4. A Visão
+
+Analise imagens relacionadas ao seu tema usando o endpoint `/visao/analisar_evidencia`.
+
+### Entrega
+
+Até **03/03**: Relatório (.pdf ou .md) + Vídeo de demonstração (máx. 5 min).

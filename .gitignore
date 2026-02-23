@@ -1,7 +1,14 @@
 venv/
 .venv/
 __pycache__/
+*.pyc
 .env
 *.csv
 *.pkl
 .ipynb_checkpoints/
+
+# Banco vetorial ChromaDB (regenerável via app/scripts/index_cp.py)
+banco_vetorial/
+
+# Arquivos PDF e documentos pesados
+pdf/

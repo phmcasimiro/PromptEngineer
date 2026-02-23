@@ -4,3 +4,6 @@ ollama
 python-dotenv
 python-multipart
 openai
+chromadb
+psutil
+pypdf
