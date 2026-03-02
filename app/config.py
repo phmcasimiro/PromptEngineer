@@ -13,7 +13,7 @@ OLLAMA_API_EMBEDDING = f"{OLLAMA_BASE_URL}/api/embeddings"
 
 # Modelos
 # Modelo de texto, o qual será usado para classificação de crimes
-MODEL_TEXT = os.getenv("MODEL_TEXT", "qwen2.5:3b") 
+MODEL_TEXT = os.getenv("MODEL_TEXT", "llama3.2:1b")
 # Modelo de visão, o qual será usado para análise de imagens de evidências
 MODEL_VISION = os.getenv("MODEL_VISION", "qwen3-vl:8b")
 # Modelo de embeddings, o qual será usado para busca semântica no Código Penal

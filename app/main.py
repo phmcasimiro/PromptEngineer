@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from app.routers import zero_shot, few_shot, chain_of_thought, rag, visao
+from app.routers import zero_shot, few_shot, chain_of_thought, few_shot_cot, rag, visao
 
 app = FastAPI(
     # Instanciamento da API IntelliDoc
@@ -17,15 +17,15 @@ app = FastAPI(
 # Adiciona o middleware de CORS
 app.add_middleware(
     # Middleware de CORS
-    CORSMiddleware,         
+    CORSMiddleware,
     # Permite requisições de qualquer origem
-    allow_origins=["*"],    
+    allow_origins=["*"],
     # Permite o envio de credenciais
-    allow_credentials=True, 
+    allow_credentials=True,
     # Permite todos os métodos HTTP
-    allow_methods=["*"],    
+    allow_methods=["*"],
     # Permite todos os headers
-    allow_headers=["*"],    
+    allow_headers=["*"],
 )
 
 # Inclusão dos Routers
@@ -35,6 +35,10 @@ app.include_router(zero_shot.router, prefix="/zero_shot", tags=["Zero-Shot"])
 app.include_router(few_shot.router, prefix="/few_shot", tags=["Few-Shot"])
 # Inclusão do Router Chain-of-Thought
 app.include_router(chain_of_thought.router, prefix="/cot", tags=["Chain-of-Thought"])
+# Inclusão do Router Few-Shot CoT
+app.include_router(
+    few_shot_cot.router, prefix="/fscot", tags=["Chain-of-Thought + Few-Shot"]
+)
 # Inclusão do Router RAG
 app.include_router(rag.router, prefix="/rag", tags=["RAG"])
 # Inclusão do Router Visão Computacional
