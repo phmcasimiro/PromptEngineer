@@ -13,7 +13,7 @@
 - Já o Fine-Tuning, por mais poderoso que seja para alterar o comportamento de um modelo, é um processo computacionalmente intensivo, isto é, exige a preparação de datasets massivos que serão usados como exemplos, um poder de processamento considerável (geralmente múltiplas GPUs de ponta rodando por horas ou dias) e um conhecimento técnico aprofundado para ajustar os hiperparâmetros e evitar problemas como o "catastrophic forgetting", isto é, a perda de conhecimento adquirido durante o treinamento. Seria como reformar a fundação de um prédio.
 - Em resumo, se o seu objetivo é injetar conhecimento factual, específico e volátil, o RAG é a melhor opção. Se o seu objetivo é alterar o comportamento de um modelo, o Fine-Tuning é a melhor opção.
 
----.
+----
 
 ### Fundamentos e Arquitetura
 
@@ -47,7 +47,7 @@
 - **TAMANHO IDEAL DO CHUNK:**
   - Depende da estrutura dos dados. Chunks médios servem para documentos complexos, enquanto chunks menores são ideais para FAQs.
 
----
+-----
 
 ### OTIMIZAÇÃO E COMPARAÇÃO DE MÉTODOS DE RECUPERAÇÃO E BUSCA
 
@@ -114,7 +114,7 @@
 - **RE-RANKING (RECLASSIFICAÇÃO):** 
   - Refina a precisão ao reordenar os candidatos após a recuperação inicial, garantindo que a informação mais pertinente seja priorizada.
 
----
+-----
 
 ### Estratégia e Avaliação
 
