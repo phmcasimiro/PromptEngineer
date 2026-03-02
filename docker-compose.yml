@@ -1,0 +1,31 @@
+services:
+
+  # ── Serviço 1: API FastAPI ───────────────────────────────────────────────────
+  api:
+    build: .
+    container_name: intellidoc_api
+    ports:
+      - "8000:8000"
+    environment:
+      # Sobrescreve localhost pelo hostname do contêiner Ollama na rede Docker interna
+      - OLLAMA_HOST=http://ollama:11434
+    depends_on:
+      - ollama
+    volumes:
+      # Monta a pasta de documentos para que o RAG encontre os arquivos de conhecimento
+      - ./docs:/app/docs
+
+  # ── Serviço 2: Motor de IA (Ollama) ─────────────────────────────────────────
+  ollama:
+    image: ollama/ollama:latest
+    container_name: intellidoc_ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      # Volume persistente: os modelos (llama3.2, qwen2.5, nomic-embed) não
+      # precisam ser baixados novamente toda vez que o contêiner for reiniciado.
+      - ollama_data:/root/.ollama
+
+# ── Volumes Nomeados ─────────────────────────────────────────────────────────
+volumes:
+  ollama_data:

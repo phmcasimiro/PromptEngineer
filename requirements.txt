@@ -7,7 +7,5 @@ openai
 chromadb
 psutil
 pypdf
-prometheus
-fastapi
-instrumentator
+prometheus-fastapi-instrumentator
 structlog
